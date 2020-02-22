@@ -52,4 +52,23 @@ class RNN:
             print("Loading weights...")
             with open(filename, "rb") as f:
                 self.U, self.W, self.V = pickle.load(f)
-                
+            
+    def calculate_total_loss(self, x, y):
+        L = 0
+        for i in np.arange(len(y)):
+            self.forward(x[i])
+            correct_word_predictions = [j.oout[y[i][k]] for k, j in enumerate(self.layers)]
+            L += -1 * np.sum(np.log(correct_word_predictions))
+        return L
+
+    def calculate_loss(self, x, y):
+        N = np.sum((len(y_i) for y_i in y))
+        return self.calculate_total_loss(x, y) / N
+    
+    def calculate_grads(self, x, y):
+        for t, layer in enumerate(self.layers):
+            input = np.zeros(self.word_dim)
+            input[x[t]] = 1
+            prev_s = np.zeros(self.hidden_dim)
+            layer.backward(input, prev_s, y[t], self.U, self.W, self.V)
+            prev_s = layer.sout
