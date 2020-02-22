@@ -1,6 +1,7 @@
 from keras.preprocessing.sequence import pad_sequences
 from keras.preprocessing.text import Tokenizer
-import keras.utils as ku
+import numpy as np
+from keras.utils import to_categorical
 import string
 
 import warnings
@@ -15,6 +16,9 @@ def clean_text(text):
 
 
 def generate_sequences_from_texts(texts):
+    """
+    Return tokenized n-grams of given texts, vocab_size and tokenizer
+    """
     tokenizer = Tokenizer()
     tokenizer.fit_on_texts(texts)
     
@@ -25,4 +29,19 @@ def generate_sequences_from_texts(texts):
         for i in range(1, len(tokens)):
             n_gram_sequence = tokens[:i+1]
             input_sequences.append(n_gram_sequence)
-    return input_sequences, vocab_size
+    return input_sequences, vocab_size, tokenizer
+
+
+def generate_padded_sequences(input_sequences, vocab_size):
+    max_len = max([len(seq) for seq in input_sequences])
+    input_sequences = np.array(pad_sequences(input_sequences, maxlen=max_len, padding="pre"))
+    predictors, labels = input_sequences[:, :-1], input_sequences[:, -1]
+    labels = to_categorical(labels, num_classes=vocab_size)
+    
+    
+    
+    
+
+input_sequences, vocab_size, tokenizer = generate_sequences_from_texts(["I am cool", "You are not that kind"])
+generate_padded_sequences(input_sequences, vocab_size)
+    
