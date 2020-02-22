@@ -19,7 +19,7 @@ def generate_sequences_from_texts(texts):
     """
     Return tokenized n-grams of given texts, vocab_size and tokenizer
     """
-    tokenizer = Tokenizer()
+    tokenizer = Tokenizer(char_level=True, oov_token="UNK")
     tokenizer.fit_on_texts(texts)
     
     vocab_size = len(tokenizer.word_index) + 1
