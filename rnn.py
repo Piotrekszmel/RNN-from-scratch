@@ -1,5 +1,7 @@
 import numpy as np 
 import random
+import pickle
+from pathlib import Path
 from Layer import Layer
 
 class RNN:
@@ -44,4 +46,10 @@ class RNN:
             text.append(seed)
         return text
             
-        
+    def load(self, filename):
+        weightsFile = Path(filename)
+        if weightsFile.exists:
+            print("Loading weights...")
+            with open(filename, "rb") as f:
+                self.U, self.W, self.V = pickle.load(f)
+                
