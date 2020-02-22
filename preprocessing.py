@@ -38,4 +38,3 @@ def generate_padded_sequences(input_sequences, vocab_size):
     predictors, labels = input_sequences[:, :-1], input_sequences[:, -1]
     labels = to_categorical(labels, num_classes=vocab_size)
     return predictors, labels, max_len
-        
