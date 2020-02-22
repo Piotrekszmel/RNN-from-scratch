@@ -72,3 +72,23 @@ class RNN:
             prev_s = np.zeros(self.hidden_dim)
             layer.backward(input, prev_s, y[t], self.U, self.W, self.V)
             prev_s = layer.sout
+    
+    def backward(self, x, y):
+        self.forward(x)
+        self.calculate_grads(x, y)
+        dldu = np.zeros(self.U.shape)
+        dldw = np.zeros(self.W.shape)
+        dldv = np.zeros(self.V.shape)
+        T = len(self.layers)
+        for t in np.arange(T)[::-1]:
+            dldv += np.outer(self.layers[t].doidv,self.layers[t].dldoi) # dim: [hidden_dim * word_dim]
+            delta_t = np.matmul(self.layers[t].doidso, self.layers[t].dldoi) # dEt/dSt(out) dim: [hidden_dim] 
+            for bptt_step in np.arange(max(0, t-self.bptt_truncate), t+1)[::-1]:
+                delta_t = delta_t * self.layers[bptt_step].dsodsi # dim: [hidden_dim]
+                dldw += np.outer(self.layers[bptt_step].dsidw, delta_t)
+                dldu += np.outer(self.layers[bptt_step].dsidu, delta_t)
+                delta_t = np.matmul(self.layers[bptt_step].dsidpso, delta_t) # dim: [hidden_dim]
+        return (dldu, dldw, dldv)
+    
+        
+        
