@@ -37,11 +37,12 @@ def generate_padded_sequences(input_sequences, vocab_size):
     input_sequences = np.array(pad_sequences(input_sequences, maxlen=max_len, padding="pre"))
     predictors, labels = input_sequences[:, :-1], input_sequences[:, -1]
     labels = to_categorical(labels, num_classes=vocab_size)
-    
+    return predictors, labels, max_len
     
     
     
 
 input_sequences, vocab_size, tokenizer = generate_sequences_from_texts(["I am cool", "You are not that kind"])
-generate_padded_sequences(input_sequences, vocab_size)
+predictors, labels, max_len = generate_padded_sequences(input_sequences, vocab_size)
+
     
