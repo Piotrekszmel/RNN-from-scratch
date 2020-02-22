@@ -1,8 +1,12 @@
 import numpy as np 
 import random
 import pickle
+import sys
+import tqdm
+from datetime import datetime
 from pathlib import Path
 from Layer import Layer
+
 
 class RNN:
     def __init__(self, word_dim, hidden_dim=100, bptt_truncate=4):
@@ -89,6 +93,37 @@ class RNN:
                 dldu += np.outer(self.layers[bptt_step].dsidu, delta_t)
                 delta_t = np.matmul(self.layers[bptt_step].dsidpso, delta_t) # dim: [hidden_dim]
         return (dldu, dldw, dldv)
+
+    def sgd_step(self, x, y, learning_rate):
+        dU, dW, dV = self.backward(x, y)
+        self.U -= learning_rate * dU
+        self.V -= learning_rate * dV
+        self.W -= learning_rate * dW
     
+    def train(self, X, Y, learning_rate, num_epoch, evaluate_loss_after):
+        num_examples_seen = 0
+        losses = []
+        print("\n\n TRAINING STARTED \n\n")
+        for epoch in range(num_epoch):
+            if (epoch % evaluate_loss_after == 0):
+                    loss = self.calculate_loss(X,Y)
+                    losses.append((num_examples_seen, loss))
+                    time = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+                    print("{}: Loss after num_examples_seen={} epoch={}: {}".format(time, num_examples_seen, epoch, loss))
+                    # Adjust the learning rate if loss increases
+                    if len(losses) > 1 and losses[-1][1] > losses[-2][1]:
+                        learning_rate = learning_rate * 0.5
+                        print("Setting learning rate to {}".format(learning_rate))
+                    sys.stdout.flush()
+            # For each training example...
+            for i in tqdm.tqdm(range(len(Y))):
+                # X[i] and Y[i] are one training example
+                self.sgd_step(X[i], Y[i], learning_rate)
+                num_examples_seen += 1
+            with open('uwv.pkl', 'wb') as f:  
+                pickle.dump([self.U, self.W, self.V], f)
+            f.close()
+        return losses
+        
         
         
