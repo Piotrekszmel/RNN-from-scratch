@@ -24,25 +24,25 @@ class RNN:
         """
         T = len(x)
         self.layers = []
-        prev_s = np.zeros(self.hidden_dim)
+        prev_state = np.zeros(self.hidden_dim)
         for t in range(T):
             layer = Layer()
             input = np.zeros(self.word_dim)
             input[x[t]] = 1
-            layer.forward(input, prev_s, self.U, self.W, self.V)
-            prev_s = layer.sout
+            layer.forward(input, prev_state, self.U, self.W, self.V)
+            prev_state = layer.sout
             self.layers.append(layer)
     
     def generate(self, seed, num=100, k=10):
         text = []
         text.append(seed)
-        prev_s = np.zeros(self.hidden_dim)
+        prev_state = np.zeros(self.hidden_dim)
         for i in range(num):
             layer = Layer()
             input = np.zeros(self.word_dim)
             input[seed] = 1
-            layer.forward(input, prev_s, self.U, self.W, self.V)
-            prev_s = layer.sout
+            layer.forward(input, prev_state, self.U, self.W, self.V)
+            prev_state = layer.sout
             temp = sorted(layer.oout, reverse=True)
             threshold = temp[k-1]
             top = [index for index, val in enumerate(layer.oout) if val>=threshold]
@@ -73,9 +73,9 @@ class RNN:
         for t, layer in enumerate(self.layers):
             input = np.zeros(self.word_dim)
             input[x[t]] = 1
-            prev_s = np.zeros(self.hidden_dim)
-            layer.backward(input, prev_s, y[t], self.U, self.W, self.V)
-            prev_s = layer.sout
+            prev_state = np.zeros(self.hidden_dim)
+            layer.backward(input, prev_state, y[t], self.U, self.W, self.V)
+            prev_state = layer.sout
     
     def backward(self, x, y):
         self.forward(x)
