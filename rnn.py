@@ -33,4 +33,17 @@ class Model:
         layers = self.forward_propagation(x)
         return [np.argmax(output.predict(layer.mulv)) for layer in layers]
 
+    def calculate_loss(self, x, y):
+        assert len(x) == len(y)
+        output = Softmax
+        layers = self.forward_propagation(x)
+        loss = 0.0
+        for i, layer in enumerate(layers):
+            loss += output.loss(layer.mulv, y[i])
+        return loss / float(len(y))
     
+    def calculate_total_loss(self, X, Y):
+        loss = 0.0
+        for i in range(len(Y)):
+            loss += self.calculate_loss(X[i], Y[i])
+        return loss / float(len(Y))
