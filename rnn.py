@@ -60,5 +60,20 @@ class Model:
         prev_s_t = np.zeros(self.hidden_dim)
         diff_s = np.zeros(self.hidden_dim)
         
-        for t in range(T):
+        for t in range(0, T):
             dmulv = output.diff(layers[t].mulv, y[t])
+            input = np.zeros(self.word_dim)
+            input[x[t]] = 1
+            dprev_s, dU_t, dW_t, dV_t = layers[t].backward(input, prev_s_t, self.U, self.W, self.V, diff_s, dmulv)
+            prev_s_t = layers[t].s
+            dmulv = np.zeros(self.word_dim)
+            for i in range(t-1, max(-1, t - self.bptt_truncate - 1), -1):
+                input = np.zeros(word_dim)
+                input[x[i]] = 1
+                prev_s_i = np.zeros(self.hidden_dim) if i == 0 else layers[i-1].s
+                dprev_s, dU_i, dW_i, dV_i = layers[i].backward(input, prev_s_i, self.U, self.W, self.V, dprev_s, dmulv)
+            dV += dV_t
+            dU += dU_t
+            dW += dW_t
+        return (dU, dW, dV)
+    
