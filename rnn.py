@@ -35,7 +35,7 @@ class Model:
 
     def calculate_loss(self, x, y):
         assert len(x) == len(y)
-        output = Softmax
+        output = Softmax()
         layers = self.forward_propagation(x)
         loss = 0.0
         for i, layer in enumerate(layers):
@@ -82,4 +82,23 @@ class Model:
         self.U -= learning_rate * dU
         self.V -= learning_rate * dV
         self.W -= learning_rate * dW
-        
+    
+    def train(self, X, Y, learning_rate=0.005, num_epochs=100, evaluate_loss_after=5):
+        num_examples_seen = 0
+        losses = []
+        for epoch in range(num_epochs):
+            if (epoch % evaluate_loss_after == 0):
+                loss = self.calculate_total_loss(X, Y)
+                losses.append((num_examples_seen, loss))
+                time = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+                print("{}: Loss after num_examples_seen={} epoch={}: {}".format(time, num_examples_seen, epoch, loss))
+                
+                if len(losses) > 1 and losses[-1][1] > losses[-2][1]:
+                    learning_rate = learning_rate * 0.5
+                    print("Setting learning rate to {}".format(learning_rate))
+                sys.stdout.flush()
+            
+            for i in range(len(Y)):
+                self.sgd_step(X[i], Y[i], learning_rate)
+                num_examples_seen += 1
+        return losses
