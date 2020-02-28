@@ -77,3 +77,9 @@ class Model:
             dW += dW_t
         return (dU, dW, dV)
     
+    def sgd_step(self, x, y, learning_rate):
+        dU, dW, dV = self.bptt(x, y)
+        self.U -= learning_rate * dU
+        self.V -= learning_rate * dV
+        self.W -= learning_rate * dW
+        
