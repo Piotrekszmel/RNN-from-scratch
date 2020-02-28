@@ -47,3 +47,18 @@ class Model:
         for i in range(len(Y)):
             loss += self.calculate_loss(X[i], Y[i])
         return loss / float(len(Y))
+    
+    def bptt(self, x, y):
+        assert len(x) == len(y)
+        output = Softmax()
+        layers = self.forward_propagation(x)
+        dU = np.zeros(self.U.shape)
+        dV = np.zeros(self.V.shape)
+        dW = np.zeros(self.W.shape)
+        
+        T = len(layers)
+        prev_s_t = np.zeros(self.hidden_dim)
+        diff_s = np.zeros(self.hidden_dim)
+        
+        for t in range(T):
+            dmulv = output.diff(layers[t].mulv, y[t])
