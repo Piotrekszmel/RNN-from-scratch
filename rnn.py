@@ -96,8 +96,7 @@ class Model:
                 if len(losses) > 1 and losses[-1][1] > losses[-2][1]:
                     learning_rate = learning_rate * 0.5
                     print("Setting learning rate to {}".format(learning_rate))
-                sys.stdout.flush()
-            
+                
             for i in range(len(Y)):
                 self.sgd_step(X[i], Y[i], learning_rate)
                 num_examples_seen += 1

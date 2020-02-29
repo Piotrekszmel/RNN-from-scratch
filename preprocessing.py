@@ -1,40 +1,62 @@
-from keras.preprocessing.sequence import pad_sequences
-from keras.preprocessing.text import Tokenizer
 import numpy as np
-from keras.utils import to_categorical
-import string
-
-import warnings
-warnings.filterwarnings("ignore")
-warnings.simplefilter(action='ignore', category=FutureWarning)
+import itertools
+import nltk
+import csv 
 
 
-def clean_text(text):
-    text = "".join(v for v in text if v not in string.punctuation).lower()
-    text = text.encode("utf-8").decode("ascii", "ignore")
-    return text
-
-
-def generate_sequences_from_texts(texts):
-    """
-    Return tokenized n-grams of given texts, vocab_size and tokenizer
-    """
-    tokenizer = Tokenizer(char_level=True, oov_token="UNK")
-    tokenizer.fit_on_texts(texts)
+def getData(path, vocabulary_size=8000):
+    UNK_token = "UNK"
+    START_token = "SENTENCE_START"
+    END_token = "SENTENCE_END"
     
-    vocab_size = len(tokenizer.word_index) + 1
-    input_sequences = []
-    for line in texts:
-        tokens = tokenizer.texts_to_sequences([line])[0]
-        for i in range(1, len(tokens)):
-            n_gram_sequence = tokens[:i+1]
-            input_sequences.append(n_gram_sequence)
-    return input_sequences, vocab_size, tokenizer
+     # Read the data and append SENTENCE_START and SENTENCE_END tokens
+    print("Reading CSV file...")
+    with open(path, "r", encoding="utf-8") as f:
+        reader = csv.reader(f, skipinitialspace=True)
+        # Split full comments into sentences
+        sentences = itertools.chain(*[nltk.sent_tokenize(x[0].lower()) for x in reader])
+        # Append SENTENCE_START and SENTENCE_END
+        sentences = ["{} {} {}".format(START_token, x, END_token) for x in sentences]
+    print("Parsed {} sentences".format(len(sentences)))
+    
+    # Tokenize the sentences into words
+    tokenized_sentences = [nltk.word_tokenize(sent) for sent in sentences]
+    # Filter the sentences having few words (including SENTENCE_START and SENTENCE_END)
+    tokenized_sentences = list(filter(lambda x: len(x) > 3, tokenized_sentences))
+    
+    # Count the word frequencies
+    word_freq = nltk.FreqDist(itertools.chain(*tokenized_sentences))
+    print("Found {} unique words tokens.".format(len(word_freq.items())))
+    
+    # Get the most common words and build index_to_word and word_to_index vectors
+    vocab = word_freq.most_common(vocabulary_size - 1)
+    index_to_word = [x[0] for x in vocab]
+    index_to_word.append(UNK_token)
+    word_to_index = dict([(w, i) for i, w in enumerate(index_to_word)])
+    
+    print("Using vocabulary size {}.".format(vocabulary_size))
+    print("The least frequent word in our vocabulary is '{}' and appeared {} times.".format(vocab[-1][0], vocab[-1][1]))
 
+    # Replace all words not in our vocabulary with the unknown token
+    for i, sent in enumerate(tokenized_sentences):
+        tokenized_sentences[i] = [w if w in word_to_index else UNK_token for w in sent]
 
-def generate_padded_sequences(input_sequences, vocab_size):
-    max_len = max([len(seq) for seq in input_sequences])
-    input_sequences = np.array(pad_sequences(input_sequences, maxlen=max_len, padding="pre"))
-    predictors, labels = input_sequences[:, :-1], input_sequences[:, -1]
-    labels = to_categorical(labels, num_classes=vocab_size)
-    return predictors, labels, max_len
+    print("\nExample sentence: '{}'".format(sentences[1]))
+    print("\nExample sentence after Pre-processing: '{}'\n".format(tokenized_sentences[0]))
+
+    # Create the training data
+    X_train = np.asarray([[word_to_index[w] for w in sent[:-1]] for sent in tokenized_sentences])
+    y_train = np.asarray([[word_to_index[w] for w in sent[1:]] for sent in tokenized_sentences])
+
+    print("X_train shape: " + str(X_train.shape))
+    print("y_train shape: " + str(y_train.shape))
+
+    # Print an training data example
+    x_example, y_example = X_train[17], y_train[17]
+    print("x:\n{}\n{}".format(" ".join([index_to_word[x] for x in x_example]), x_example))
+    print("\ny:\n{}\n{}".format(" ".join([index_to_word[x] for x in y_example]), y_example))
+
+    return X_train, y_train
+
+if __name__ == '__main__':
+    X_train, y_train = getData('data/reddit-comments-2015-08.csv')
