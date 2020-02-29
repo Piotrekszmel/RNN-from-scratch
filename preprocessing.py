@@ -4,7 +4,7 @@ import nltk
 import csv 
 
 
-def getData(path, vocabulary_size=8000):
+def load_Data(path, vocabulary_size=8000):
     UNK_token = "UNK"
     START_token = "SENTENCE_START"
     END_token = "SENTENCE_END"
@@ -59,4 +59,4 @@ def getData(path, vocabulary_size=8000):
     return X_train, y_train
 
 if __name__ == '__main__':
-    X_train, y_train = getData('data/reddit-comments-2015-08.csv')
+    X_train, y_train = load_Data('data/reddit-comments-2015-08.csv')
