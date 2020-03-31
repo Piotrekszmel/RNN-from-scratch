@@ -4,15 +4,15 @@
 
  1.<b> data </b>
  
- Twitter comments from 2015.08 as csv
+ - Twitter comments from 2015.08 as csv
  <br>
  2.<b> prepocessing.py </b>
  
- Loads data. Based on provided data and  created vocabulary creates X_train, y_train
+ - Loads data. Based on provided data and  created vocabulary creates X_train, y_train
  <br>
  3.<b> layer.py </b>
  
- Forward and backpropagation of RNN layer
+ - Forward and backpropagation of RNN layer
  <br>
  4.<b> gate.py </b>
 
@@ -36,7 +36,7 @@
  <br>
  7.<b> main.py </b>
  
-  Example use of RNN
+  - Example use of RNN
 
 
 
