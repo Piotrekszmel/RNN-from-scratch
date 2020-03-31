@@ -1,6 +1,7 @@
 # RNN-from-scratch
  Implementation of Recurrent Neural Network  from scratch
 
+<br>
  <b> data </b>
  
  Twitter comments from 2015.08 as csv
